@@ -1,0 +1,24 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "Anirudhwa Ankon",
+      "joinTime": "6:12"
+    },
+    {
+      "id": 2,
+      "name": "Jane Smith",
+      "joinTime": "6:25"
+    },
+    {
+      "id": 3,
+      "name": "Alice Johnson",
+      "joinTime": "6:40"
+    },
+    {
+      "id": 4,
+      "name": "John Doe",
+      "joinTime": "6:45"
+    }
+  ]
+}
