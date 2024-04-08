@@ -9,9 +9,9 @@ export default function Auth(props) {
 				<div className="large-screens hidden sm:block h-[100vh]">
 					<div className="w-auto flex flex-row h-full">
 						{/* Left side content */}
-						<div className="flex flex-col justify-center basis-3/5 h-full">
-							<div className="flex flex-col mx-auto h-full justify-center">
-								<h1 className="text-amber-500 text-center sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl">
+						<div className="flex flex-col pl-10 w-[60vw] h-full relative z-10 bg-slate-950/50 ">
+							<div className="py-10 flex flex-col h-full justify-center items-center">
+								<h1 className="text-amber-500 text-center sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl">
 									OpenChat
 								</h1>
 								<h3 className="text-black dark:text-white text-center sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl p-3">
@@ -21,9 +21,9 @@ export default function Auth(props) {
 							</div>
 						</div>
 						{/* Right side image */}
-						<div className="basis-2/5">
+						<div className="">
 							<img
-								className="h-lvh absolute right-0"
+								className="h-lvh w-[40vw] absolute right-0"
 								src={
 									window.matchMedia(
 										"(prefers-color-scheme: dark)"

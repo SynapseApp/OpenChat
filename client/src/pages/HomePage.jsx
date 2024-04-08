@@ -11,11 +11,22 @@ import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"; // Import InfoO
 import ArrowBackIcon from "@mui/icons-material/ArrowBack"; // Import ArrowBackIcon component from MUI
 import MenuIcon from "@mui/icons-material/Menu"; // Import MenuIcon component from MUI
 import { amber } from "@mui/material/colors"; // Import amber color from MUI
-import onlineUsers from "../dummy/onlineUsers.json"; // Import onlineUsers data from JSON file
-import rooms from "../dummy/rooms.json"; // Import rooms data from JSON file
-import { Link } from "react-router-dom";
+import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 
-function HomePage() {
+import rooms from "../dummy/rooms.json"; // Import rooms data from JSON file
+import { Link, useNavigate } from "react-router-dom";
+import makeRequest from "../utils/makeRequest";
+import config from "../utils/config";
+
+function HomePage({ globalData }) {
+	const { isAuthenticated, setIsAuthenticated, user } = globalData;
+	const navigate = useNavigate();
+	useEffect(() => {
+		if (isAuthenticated === false) {
+			navigate("/register");
+		}
+	}, [isAuthenticated]);
+
 	// State variables
 	const [theme, setTheme] = useState(getInitialTheme()); // Theme state variable
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // Mobile menu state variable
@@ -23,13 +34,24 @@ function HomePage() {
 	const [selectedRoom, setSelectedRoom] = useState(null); // Selected room state variable
 	const [text, setText] = useState(""); // Text state variable
 	const [users, setUsers] = useState(null); // Users state variable
+	const [onlineUsers, setOnlineUsers] = useState([]);
+	const [curUser, setCurUser] = useState({
+		id: 1,
+		name: user?.username,
+		joinTime: "6:12",
+	});
 
 	//replicate client profile
-	const curUser = {
-		id: 1,
-		name: "Anirudhwa Ankon",
-		joinTime: "6:12",
-	};
+
+	useEffect(() => {
+		console.log("runs");
+		setCurUser({
+			id: user?._id,
+			name: user?.username,
+			joinTime: "6:12",
+		});
+		setOnlineUsers([curUser, ...onlineUsers]);
+	}, [user]);
 
 	// Function to get the initial theme based on user's system preference
 	function getInitialTheme() {
@@ -107,6 +129,14 @@ function HomePage() {
 
 		// Clear the input text
 		setText("");
+	}
+
+	async function logout() {
+		const response = await makeRequest(
+			`${config.SERVER_URL}/user/logout`,
+			"POST"
+		);
+		setIsAuthenticated(response.success);
 	}
 
 	return (
@@ -188,14 +218,14 @@ function HomePage() {
 					>
 						{/* User list */}
 						<div className="overflow-y-auto">
-							{onlineUsers.users.map((user) => {
+							{onlineUsers.map((mapUser) => {
 								return (
 									<RoomCard
-										key={user.id}
-										user={user}
-										ownCard={user.id === curUser.id}
+										key={mapUser.id}
+										user={mapUser}
+										ownCard={mapUser.id === curUser.id}
 										handleRoomSelect={() =>
-											handleRoomSelect(user)
+											handleRoomSelect(mapUser)
 										}
 										theme={theme}
 									/>
@@ -242,6 +272,13 @@ function HomePage() {
 										sx={{ color: amber[500] }}
 									/>
 								</Link>
+								<button
+									className="text-2xl flex items-center"
+									onClick={logout}
+								>
+									<p className="me-2">Logout</p>
+									<ExitToAppIcon sx={{ color: amber[500] }} />
+								</button>
 							</div>
 						</div>
 					</div>
@@ -360,7 +397,7 @@ function HomePage() {
 								className="overflow-y-auto"
 								onClick={() => setMobileMenuOpen(false)}
 							>
-								{onlineUsers.users.map((user) => {
+								{onlineUsers.map((user) => {
 									return (
 										<RoomCard
 											key={user.id}
@@ -396,6 +433,15 @@ function HomePage() {
 											sx={{ color: amber[500] }}
 										/>
 									</Link>
+									<button
+										className="text-2xl flex items-center"
+										onClick={logout}
+									>
+										<p className="me-2">Logout</p>
+										<ExitToAppIcon
+											sx={{ color: amber[500] }}
+										/>
+									</button>
 								</div>
 								{/* Theme toggle */}
 								<button
