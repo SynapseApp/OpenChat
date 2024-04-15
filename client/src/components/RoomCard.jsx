@@ -20,8 +20,8 @@ function RoomCard({ user, ownCard, handleRoomSelect, theme }) {
       }
       onClick={handleRoomSelect}
     >
-      <p>{user.name}</p>
-      <p>Joined: {user.joinTime} am</p>
+      <p>{user.username}</p>
+      {/* <p>Joined: {user.joinTime} am</p> */}
     </div>
   );
 }
