@@ -12,44 +12,41 @@ import MenuIcon from "@mui/icons-material/Menu"; // Import MenuIcon component fr
 import { amber } from "@mui/material/colors"; // Import amber color from MUI
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 
-import rooms from "../dummy/rooms.json"; // Import rooms data from JSON file
 import { Component, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import makeRequest from "../utils/makeRequest";
 import config from "../utils/config";
 
 class HomePage extends Component {
-  state = {
-    theme: "dark",
-    mobileMenuOpen: false,
-    selectedUser: null,
-    selectedRoom: null,
-    text: "",
-    users: null,
-    onlineUsers: [],
-  };
-
   constructor() {
     super();
     this.state = {
+      disable: false,
       theme: this.getInitialTheme(),
       mobileMenuOpen: false,
       selectedUser: null,
       selectedRoom: null,
+      messages: [],
+      rooms: [],
       text: "",
       users: null,
       onlineUsers: [],
     };
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     const { user } = this.props;
-    const { onlineUsers } = this.state;
-    this.setState({ onlineUsers: [user, ...onlineUsers] });
+
+    const users = (await makeRequest(config.SERVER_URL + "/user")).data.filter(
+      (u) => u._id !== user._id
+    );
+    const rooms = (await makeRequest(config.SERVER_URL + "/room")).data;
+
+    this.setState({ onlineUsers: [user, ...users], rooms });
   }
 
   Messages = () => {
-    const { selectedUser, selectedRoom, theme } = this.state;
+    const { selectedUser, messages, theme } = this.state;
     const { user } = this.props;
 
     return (
@@ -64,11 +61,11 @@ class HomePage extends Component {
           </h1>
         ) : (
           // Display messages
-          selectedRoom?.messages?.map((message) => {
+          messages.map((message) => {
             return (
               <TextCard
-                key={message.message_id}
-                receivingText={!(message.sender_id === user._id)}
+                key={message._id}
+                receivingText={!(message.sender === user._id)}
                 text={message.content}
                 theme={theme}
                 time={message.time}
@@ -85,10 +82,16 @@ class HomePage extends Component {
       <>
         {selectedUser && (
           <form
-            className="chat-input flex flex-row mx-5 my-4"
+            className="chat-input flex flex-row mx-5 my-4 justify-between max-md:w-full"
             onSubmit={(event) => this.handleMessageSend(text, event)}
           >
-            <TextInput theme={theme} text={text} setText={this.setText} />
+            <TextInput
+              theme={theme}
+              text={text}
+              setText={(text) => {
+                this.setState({ text });
+              }}
+            />
             <button
               className="bg-amber-500 text-white p-3 rounded-2xl"
               type="submit"
@@ -110,7 +113,7 @@ class HomePage extends Component {
             key={mapUser._id}
             user={mapUser}
             ownCard={mapUser._id === user._id}
-            handleRoomSelect={() => handleRoomSelect(mapUser)}
+            handleRoomSelect={() => this.handleRoomSelect(mapUser)}
             theme={theme}
           />
         ))}
@@ -176,7 +179,7 @@ class HomePage extends Component {
           {/* Left side content */}
           <div className="flex flex-col justify-end w-full h-lvh max-h-lvh">
             <div
-              className={`flex flex-col overflow-y-auto no-scrollbar break-words ${
+              className={`chats flex flex-col overflow-y-auto no-scrollbar break-words ${
                 selectedUser ? "" : "m-auto"
               }`}
             >
@@ -187,7 +190,7 @@ class HomePage extends Component {
           </div>
           {/* Right side content */}
           <div
-            className={`w-auto h-lvh max-h-lvh ms-5 flex flex-col justify-between ${
+            className={`w-auto h-lvh max-h-lvh flex flex-col justify-between ${
               theme === "dark" ? "bg-slate-900" : "bg-slate-800"
             }`}
           >
@@ -226,7 +229,7 @@ class HomePage extends Component {
         >
           <div>
             <div
-              className={`flex flex-col w-auto h-dvh max-h-dvh 
+              className={`flex flex-col w-full h-dvh max-h-dvh 
 								${selectedUser ? "justify-between" : ""}`}
             >
               {/* Main content */}
@@ -236,13 +239,15 @@ class HomePage extends Component {
                 </button>
               </div>
               {/* Messages section */}
-              <div className="flex flex-col justify-end">
-                <div className="flex flex-col overflow-y-auto break-words">
+              <div className="h-[90dvh] w-full flex flex-col">
+                <div className="chats w-full h-[80dvh] flex flex-col overflow-y-auto">
                   {/* Display messages if user is selected otherwise prompt user to select a conversation*/}
                   <this.Messages />
                 </div>
                 {/* Message input section */}
-                <this.MessageInput />
+                <div className="flex h-[5rem] w-full">
+                  <this.MessageInput />
+                </div>
               </div>
             </div>
           </div>
@@ -294,9 +299,18 @@ class HomePage extends Component {
     );
   };
   render() {
-    const { theme } = this.state;
+    const { theme, disable } = this.state;
     return (
-      <div className={theme === "dark" ? "bg-[#020617]" : "bg-white"}>
+      <div
+        className={`h-[100dvh] w-[100vw] overflow-hidden ${
+          theme === "dark" ? "bg-[#020617]" : "bg-white"
+        }`}
+      >
+        <div
+          className={`absolute w-screen h-screen top-0 left-0 bg-slate-950/30 ${
+            !disable ? "hidden" : ""
+          }`}
+        ></div>
         {/* Large Screen */}
         <div className="large-screens hidden md:block">
           <this.LargeScreenUI />
@@ -331,60 +345,79 @@ class HomePage extends Component {
   };
 
   // Function to search for chat/room
-  checkConnection = (rooms, yourID, clickedUserID) => {
+  checkConnection = async (yourID, clickedUserID) => {
+    const { rooms } = this.state;
+    if (yourID === clickedUserID) return null;
     let room = null;
-    room = rooms.rooms.find(
+    room = rooms.find(
       (room) =>
-        room.connections.includes(yourID) &&
-        room.connections.includes(clickedUserID) &&
-        yourID !== clickedUserID
+        room.users.includes(yourID) && room.users.includes(clickedUserID)
     );
+    if (room === undefined) {
+      this.setState({ disable: true });
+      room = (
+        await makeRequest(config.SERVER_URL + "/room", "POST", {
+          users: [yourID, clickedUserID],
+        })
+      ).data;
+      this.setState({ rooms: [...rooms, room], disable: false });
+    }
     return room;
   };
 
   // Function to handle room selection
-  handleRoomSelect = (user) => {
-    const room = this.checkConnection(rooms, curUser.id, user.id);
+  handleRoomSelect = async (user) => {
+    const { user: curUser, socket } = this.props;
+    const { selectedRoom } = this.state;
+    const room = await this.checkConnection(curUser._id, user._id);
     if (!room) {
       this.setState({ selectedUser: null });
     } else {
       this.setState({ selectedUser: user });
     }
-    this.setState({ selectedRoom: room });
+
+    if (selectedRoom !== null)
+      socket.off(
+        selectedRoom._id + "/incoming-message",
+        this.handleIncomingMessage
+      );
+    if (room !== null) {
+      socket.on(room._id + "/incoming-message", this.handleIncomingMessage);
+    }
+
+    const messages = (
+      await makeRequest(config.SERVER_URL + `/message?room=${room._id}`)
+    ).data;
+
+    this.setState({ selectedRoom: room, messages });
+
+    this.toRecentChat();
+  };
+
+  handleIncomingMessage = (message) => {
+    const { messages } = this.state;
+    this.setState({ messages: [...messages, message] });
+    this.toRecentChat();
   };
 
   // Function to handle message sending
-  handleMessageSend = (text, event) => {
+  handleMessageSend = async (text, event) => {
     event.preventDefault();
 
-    const { selectedRoom } = this.state;
+    const { selectedRoom, messages } = this.state;
     const { user } = this.props;
 
-    const messageId =
-      Math.max(
-        ...selectedRoom.messages.map((message) => message.message_id),
-        0
-      ) + 1;
-    // Create the new message object
-    const newMessage = {
-      message_id: messageId,
-      sender_id: user.id,
-      time: new Date().toISOString(),
-      content: text,
-    };
-
-    console.log(newMessage.time);
+    if (text !== "")
+      await makeRequest(config.SERVER_URL + "/message", "POST", {
+        sender: user._id,
+        room: selectedRoom._id,
+        time: new Date().toISOString(),
+        content: text,
+      });
 
     // Add the new message to the messages array of the corresponding room
-    this.setSelectedRoom((prevRoom) => ({
-      ...prevRoom,
-      messages: [...prevRoom.messages, newMessage],
-    }));
-
-    console.log(text);
-
-    // Clear the input text
-    setText("");
+    // this.setState({ messages: [...messages, newMessage], text: "" });
+    this.setState({ text: "" });
   };
   // Logout the user
   logout = async () => {
@@ -394,6 +427,15 @@ class HomePage extends Component {
       "POST"
     );
     setIsAuthenticated(response.success);
+  };
+
+  toRecentChat = () => {
+    const chats = document.querySelectorAll(".chats");
+    chats.forEach((chat) => {
+      setTimeout(() => {
+        chat.scrollTop = chat.scrollHeight;
+      });
+    });
   };
 }
 
@@ -409,24 +451,3 @@ export default function (props) {
 
   return <HomePage {...props} />;
 }
-
-// 	useEffect(() => {
-// 		if (isAuthenticated === false) {
-// 			navigate("/register");
-// 		}
-// 	}, [isAuthenticated]);
-
-// 	useEffect(() => {
-// 		console.log("runs");
-// 		setCurUser({
-// 			id: user?._id,
-// 			name: user?.username,
-// 			joinTime: "6:12",
-// 		});
-// 		setOnlineUsers([curUser, ...onlineUsers]);
-// 	}, [user]);
-
-// 	// Effect to set users when component mounts
-// 	useEffect(() => {
-// 		setUsers(onlineUsers);
-// 	}, [users]);

@@ -12,16 +12,23 @@ import NotFound from "./pages/NotFound";
 import { useEffect, useState } from "react";
 import makeRequest from "./utils/makeRequest";
 import config from "./utils/config";
+import io from "socket.io-client";
 
 function App() {
   // const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(undefined);
   const [user, setUser] = useState(undefined);
+
+  console.log(config.SERVER_URL);
+
+  const socket = io(config.SERVER_URL);
+
   const globalData = {
     isAuthenticated,
     setIsAuthenticated,
     user,
     setUser,
+    socket,
   };
   useEffect(() => {
     async function checkAuth() {
@@ -29,7 +36,6 @@ function App() {
         `${config.SERVER_URL}/user/is-authenticated`
       );
       if (response.success) {
-        console.log(response);
         setIsAuthenticated(true);
         setUser(response.data);
         // navigate("/home");
