@@ -18,6 +18,7 @@ function LoginPage({ isAuthenticated, setIsAuthenticated, setUser }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [disabled, setDisabled] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -28,6 +29,7 @@ function LoginPage({ isAuthenticated, setIsAuthenticated, setUser }) {
         "POST",
         { username: email, password }
       );
+      setFailed(!response.success);
       if (response.success) {
         setIsAuthenticated(true);
         setUser(response.data);
@@ -42,17 +44,22 @@ function LoginPage({ isAuthenticated, setIsAuthenticated, setUser }) {
         onSubmit={handleSubmit}
         className="flex flex-col w-full justify-center "
       >
+        {failed && (
+          <div className="text-red-600">Invalid email or password</div>
+        )}
         {/* Input fields */}
 
         <AuthInput
           placeholder="Email"
           useValue={[email, setEmail]}
           disabled={disabled}
+          type="email"
         />
         <AuthInput
           placeholder="Password"
           useValue={[password, setPassword]}
           disabled={disabled}
+          type="password"
         />
 
         <button
