@@ -82,17 +82,17 @@ function TextCard({ receivingText, text, theme, time }) {
     <>
       <div
         className={
-          "max-w-[66%] rounded-3xl rounded-tl-lg rounded-br-lg mx-5 my-2 drop-shadow-lg font-ubuntu " +
+          "max-w-[66%] w-fit rounded-2xl mx-5 my-2 drop-shadow-lg font-ubuntu " +
           (receivingText
             ? theme === "dark"
-              ? "bg-slate-900 text-white hover:bg-slate-800"
-              : "bg-slate-300 text-black hover:bg-slate-200"
-            : " bg-amber-500 self-end text-black hover:bg-amber-400")
+              ? "bg-slate-900 text-white hover:bg-slate-800 rounded-tl-lg"
+              : "bg-slate-300 text-black hover:bg-slate-200 rounded-tl-lg"
+            : " bg-amber-500 self-end text-black hover:bg-amber-400 rounded-tr-lg")
         }
         onContextMenu={handleContextMenu}
       >
-        <p className="pt-4 px-3 text-left">{text}</p>
-        <p className="py-1 px-3 text-right text-sm">{localtime}</p>
+        <p className="pt-2 px-4 text-left">{text}</p>
+        <p className="py-1 px-4 text-right text-sm">{localtime}</p>
       </div>
       {/* <Transition
         show={contextMenuVisible}
