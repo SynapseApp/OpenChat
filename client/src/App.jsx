@@ -64,13 +64,12 @@ function App() {
       ) : (
         <Router>
           <Routes>
-            <Route path="/" element={<About {...globalData} />} />
             <Route
               path="/register"
               element={<RegisterPage {...globalData} />}
             />
             <Route path="/login" element={<LoginPage {...globalData} />} />
-            <Route path="/home" element={<HomePage {...globalData} />} />
+            <Route path="/" element={<HomePage {...globalData} />} />
             <Route path="/about" element={<About {...globalData} />} />
             <Route path="*" element={<NotFound {...globalData} />} />
           </Routes>

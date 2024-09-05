@@ -346,9 +346,10 @@ class HomePage extends Component {
 
   // Function to search for chat/room
   checkConnection = async (yourID, clickedUserID) => {
-    const { rooms } = this.state;
     if (yourID === clickedUserID) return null;
     let room = null;
+    const rooms = (await makeRequest(config.SERVER_URL + "/room")).data
+    this.setState({rooms});
     room = rooms.find(
       (room) =>
         room.users.includes(yourID) && room.users.includes(clickedUserID)

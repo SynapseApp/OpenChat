@@ -11,7 +11,7 @@ function LoginPage({ isAuthenticated, setIsAuthenticated, setUser }) {
   const navigate = useNavigate();
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/home");
+      navigate("/");
     }
   }, [isAuthenticated]);
 
