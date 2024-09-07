@@ -14,4 +14,5 @@ export function initDb() {
 				console.log(err);
 				reject(err);
 			});
+	})
 }
