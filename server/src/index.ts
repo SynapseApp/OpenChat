@@ -15,8 +15,7 @@ const MongoDBStore = connectMongoDBSession(session);
 
 const store = new MongoDBStore({
 	uri: String(config.DB_URI), // MongoDB connection URL
-	secret: config.SESSION_SECRET, // Secret used to sign the session ID cookie
-	touchAfter: 24 * 60 * 60, // Time period in seconds after which session data is updated
+	collection: "Synapse-OpenChat"
 });
 
 // Handle errors from the session store
