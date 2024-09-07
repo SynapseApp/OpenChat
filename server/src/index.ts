@@ -34,7 +34,6 @@ app.use(
 		store,
 		cookie: {
 			maxAge: 1000 * 60 * 60 * 24 * 28, // Set the maximum age of the session cookie to 1 day
-			secure: true,
 		},
 	})
 );
