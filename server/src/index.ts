@@ -34,7 +34,7 @@ app.use(
 		store,
 		cookie: {
 			maxAge: 1000 * 60 * 60 * 24 * 28, // Set the maximum age of the session cookie to 1 day
-			secure: config.NODE_ENV === "production", // Use secure cookies in production
+			secure: true, // Use secure cookies in production
       			sameSite: "none", // Allows cross-origin cookies
       			httpOnly: true, // Prevents client-side access to cookies
 		},
