@@ -14,7 +14,7 @@ import { default as connectMongoDBSession } from "connect-mongodb-session";
 const MongoDBStore = connectMongoDBSession(session);
 
 const store = new MongoDBStore({
-	uri: config.DB_URI, // MongoDB connection URL
+	uri: String(config.DB_URI), // MongoDB connection URL
 	secret: config.SESSION_SECRET, // Secret used to sign the session ID cookie
 	touchAfter: 24 * 60 * 60, // Time period in seconds after which session data is updated
 });
@@ -41,7 +41,7 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-await initDb();
+initDb();
 initAuth(app);
 initRoutes(app);
 
